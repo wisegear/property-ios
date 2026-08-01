@@ -2,40 +2,33 @@ import Combine
 import Foundation
 
 @MainActor
-final class StressDashboardViewModel: ObservableObject {
-    @Published private(set) var dashboard: StressDashboard?
-    @Published private(set) var isLoading = true
+final class SwapRatesViewModel: ObservableObject {
+    @Published private(set) var dashboard: SwapRatesDashboard?
     @Published private(set) var error: APIError?
 
-    private let client: any PropertyResearchAPIClientProtocol
-    private var loadTask: Task<StressDashboard, Error>?
+    let client: any PropertyResearchAPIClientProtocol
+    private var loadTask: Task<SwapRatesDashboard, Error>?
 
-    init(client: any PropertyResearchAPIClientProtocol, dashboard: StressDashboard? = nil) {
+    init(client: any PropertyResearchAPIClientProtocol) {
         self.client = client
-        self.dashboard = dashboard
-        isLoading = dashboard == nil
     }
 
     func load() async {
         guard dashboard == nil, loadTask == nil else { return }
 
-        isLoading = true
         error = nil
         let client = client
-        let task = Task { try await client.stressDashboard() }
+        let task = Task { try await client.swapRates() }
         loadTask = task
 
         do {
             dashboard = try await task.value
             try Task.checkCancellation()
-            isLoading = false
             loadTask = nil
         } catch is CancellationError {
-            isLoading = false
             loadTask = nil
         } catch {
             self.error = error as? APIError ?? .network
-            isLoading = false
             loadTask = nil
         }
     }
@@ -48,6 +41,5 @@ final class StressDashboardViewModel: ObservableObject {
     func cancel() {
         loadTask?.cancel()
         loadTask = nil
-        isLoading = false
     }
 }

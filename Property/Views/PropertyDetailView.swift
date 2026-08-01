@@ -54,6 +54,14 @@ struct PropertyDetailView: View {
     private func detailContent(_ property: PropertyDetail) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
+                ResearchPageHeader(
+                    eyebrow: "Property research",
+                    title: property.address ?? "Property details",
+                    subtitle: "Sales history, energy performance, nearby schools and local market context in one place.",
+                    icon: "house.fill",
+                    color: .blue,
+                    detail: property.location?.postcode
+                )
                 overview(property)
                 location(property.location)
                 salesHistory(property.transactions)

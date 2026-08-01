@@ -80,20 +80,14 @@ struct PropertyMarketDashboardView: View {
 
     private func introduction(_ metadata: PropertyMarketMetadata) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("NATIONAL MARKET", systemImage: "house.and.flag.fill")
-                .font(.caption.bold())
-                .tracking(1)
-                .foregroundStyle(.blue)
-
-            Text("England & Wales")
-                .font(.largeTitle.bold())
-
-            Text(
-                "\(metadata.rollingWindowMonths)-month rolling market data through "
-                + monthLabel(metadata.latestMonth)
+            ResearchPageHeader(
+                eyebrow: "National market",
+                title: "England & Wales",
+                subtitle: "Sales volumes, prices and market momentum from official Land Registry data.",
+                icon: "house.and.flag.fill",
+                color: .blue,
+                detail: "\(metadata.rollingWindowMonths)-month rolling data through \(monthLabel(metadata.latestMonth))"
             )
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
 
             if metadata.isProvisional {
                 Label(

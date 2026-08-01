@@ -30,6 +30,14 @@ struct CrimeDashboardView: View {
     private func dashboardContent(_ dashboard: CrimeDashboard) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
+                ResearchPageHeader(
+                    eyebrow: "Safety and local context",
+                    title: "Crime Insights",
+                    subtitle: "Explore national and regional crime trends from official police open data.",
+                    icon: "shield.lefthalf.filled",
+                    color: .orange,
+                    detail: dashboard.latestMonthLabel.map { "Latest data: \($0)" }
+                )
                 CrimeSummaryCard(
                     title: "National crime dashboard",
                     latestMonth: dashboard.latestMonthLabel,
@@ -150,6 +158,14 @@ struct CrimeAreaView: View {
     private func areaContent(_ area: CrimeAreaDetail) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
+                ResearchPageHeader(
+                    eyebrow: "Regional crime",
+                    title: area.area ?? "Regional crime",
+                    subtitle: "Crime trends, contributing categories and the latest local breakdown.",
+                    icon: "shield.lefthalf.filled",
+                    color: .orange,
+                    detail: area.latestMonthLabel.map { "Latest data: \($0)" }
+                )
                 CrimeSummaryCard(
                     title: area.area ?? "Regional crime",
                     latestMonth: area.latestMonthLabel,

@@ -3,9 +3,12 @@ import SwiftUI
 struct StressDashboardView: View {
     @StateObject private var viewModel: StressDashboardViewModel
 
-    init(client: any PropertyResearchAPIClientProtocol) {
+    init(
+        client: any PropertyResearchAPIClientProtocol,
+        dashboard: StressDashboard? = nil
+    ) {
         _viewModel = StateObject(
-            wrappedValue: StressDashboardViewModel(client: client)
+            wrappedValue: StressDashboardViewModel(client: client, dashboard: dashboard)
         )
     }
 
@@ -43,6 +46,17 @@ struct StressDashboardView: View {
             LazyVStack(alignment: .leading, spacing: 18) {
                 introduction(dashboard)
                 scoreCard(dashboard.score)
+                statusSummary(dashboard)
+
+                ResearchCard(title: "How statuses work", icon: "info.circle.fill") {
+                    Text("Positive means the latest movement improved. Neutral means it was unchanged. Warning means one or two consecutive adverse releases, and Stress means three or more.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    Text("Lower Bank Rate, inflation, unemployment, mortgage arrears and repossessions are positive. Higher mortgage approvals, house prices and wage growth are positive.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
 
                 SectionHeader(
                     title: "Stress indicators",
@@ -66,26 +80,37 @@ struct StressDashboardView: View {
         }
     }
 
-    private func introduction(_ dashboard: StressDashboard) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("UK PROPERTY MARKET", systemImage: "chart.line.uptrend.xyaxis")
-                .font(.caption.bold())
-                .tracking(1)
-                .foregroundStyle(.blue)
+    private func statusSummary(_ dashboard: StressDashboard) -> some View {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
 
-            Text("Property Market Stress")
-                .font(.largeTitle.bold())
-
-            Text(dashboard.description)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            if let lastUpdated = dashboard.lastUpdated {
-                Text("Last updated: \(lastUpdated)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        return LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(StressStatus.allCases, id: \.self) { status in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(status.label)
+                        .font(.caption.bold())
+                        .foregroundStyle(color(for: status))
+                    Text(dashboard.statusCounts[status, default: 0].formatted())
+                        .font(.title2.bold())
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(color(for: status).opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Indicator status summary")
+    }
+
+    private func introduction(_ dashboard: StressDashboard) -> some View {
+        ResearchPageHeader(
+            eyebrow: "UK property market",
+            title: "Property Market Stress",
+            subtitle: dashboard.description,
+            icon: "gauge.with.dots.needle.67percent",
+            color: .red,
+            detail: dashboard.lastUpdated.map { "Last updated: \($0)" }
+        )
     }
 
     private func scoreCard(_ score: StressScore) -> some View {
@@ -122,7 +147,7 @@ struct StressDashboardView: View {
                 .frame(width: 108, height: 108)
 
                 VStack(alignment: .leading, spacing: 7) {
-                    Text(score.statusLabel)
+                    Text(displayLabel(for: score))
                         .font(.title3.bold())
                         .foregroundStyle(color)
                     Text(score.description)
@@ -148,7 +173,7 @@ struct StressDashboardView: View {
 
                 Spacer()
 
-                Text(indicator.statusLabel)
+                Text(indicator.status.label)
                     .font(.caption.bold())
                     .foregroundStyle(color)
                     .padding(.horizontal, 10)
@@ -169,13 +194,18 @@ struct StressDashboardView: View {
                     .foregroundStyle(.secondary)
             }
 
+            if indicator.key == "interest_rates" {
+                Text(bankRateMovement(for: indicator.status))
+                    .font(.subheadline.bold())
+            }
+
             Text(indicator.description)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
             HStack {
                 Label(
-                    "\(indicator.badStreak) bad \(indicator.badStreak == 1 ? "period" : "periods")",
+                    adverseReleaseText(for: indicator),
                     systemImage: "clock.arrow.circlepath"
                 )
                 Spacer()
@@ -189,6 +219,35 @@ struct StressDashboardView: View {
                     .font(.subheadline.bold())
             }
         }
+    }
+
+    private func adverseReleaseText(for indicator: StressIndicator) -> String {
+        switch indicator.status {
+        case .positive:
+            return "Latest release improved"
+        case .neutral:
+            return "Latest release unchanged"
+        case .warning, .stress:
+            return "\(indicator.badStreak) adverse \(indicator.badStreak == 1 ? "release" : "releases")"
+        }
+    }
+
+    private func bankRateMovement(for status: StressStatus) -> String {
+        switch status {
+        case .positive:
+            return "Bank rate is lower than it was last month."
+        case .neutral:
+            return "Bank rate is unchanged from last month."
+        case .warning, .stress:
+            return "Bank rate is higher than it was last month."
+        }
+    }
+
+    private func displayLabel(for score: StressScore) -> String {
+        let legacyLabels = ["potential stress", "potential_stress"]
+        return legacyLabels.contains(score.statusLabel.lowercased())
+            ? StressStatus.warning.label
+            : score.statusLabel
     }
 
     private func formattedValue(_ indicator: StressIndicator) -> String {
@@ -215,13 +274,13 @@ struct StressDashboardView: View {
 
     private func color(for status: StressStatus) -> Color {
         switch status {
-        case .low:
+        case .positive:
             return .green
-        case .amber:
+        case .neutral:
             return .orange
-        case .red:
-            return .red
-        case .darkRed:
+        case .warning:
+            return Color(red: 0.82, green: 0.25, blue: 0.12)
+        case .stress:
             return Color(red: 0.55, green: 0.04, blue: 0.08)
         }
     }
@@ -238,5 +297,74 @@ struct StressDashboardView: View {
         case "repossessions": return "key.slash.fill"
         default: return "chart.bar.fill"
         }
+    }
+}
+
+private extension StressDashboard {
+    static let previewFixture = StressDashboard(
+        title: "PropertyResearch Stress Indicators Dashboard",
+        description: "Eight indicators combining housing demand, prices, borrowing costs, household finances and forced-sale pressure.",
+        lastUpdated: "30 Jun 2026",
+        score: StressScore(
+            value: 42,
+            maximum: 100,
+            rawValue: 10,
+            rawMaximum: 24,
+            status: .neutral,
+            statusLabel: "Elevated risk",
+            description: "A single score combining all eight indicators. Higher scores mean more stress and risk."
+        ),
+        indicators: [
+            fixture("mortgage_approvals", "Mortgage approvals", 67_250, "approvals", .positive, 0, 0),
+            fixture("house_price_index", "House prices (UK average)", 292_000, "GBP", .warning, 2, 2),
+            fixture("interest_rates", "Bank rate", 4.25, "percent", .neutral, 1, 0, period: "Effective since 18 Jun 2026"),
+            fixture("inflation", "Inflation", 3.5, "percent", .stress, 3, 3),
+            fixture("wage_growth", "Wage growth", 4.2, "percent", .positive, 0, 0, secondaryValue: 1.1),
+            fixture("unemployment", "Unemployment", 4.8, "percent", .warning, 2, 1),
+            fixture("mortgage_arrears", "Mortgage arrears", 1.21, "percent", .neutral, 1, 0, period: "Q2 2026"),
+            fixture("repossessions", "Repossessions", 0.1, "percent", .stress, 3, 4, period: "Q2 2026"),
+        ],
+        websiteURL: "https://propertyresearch.uk/economic-dashboard"
+    )
+
+    static func fixture(
+        _ key: String,
+        _ title: String,
+        _ value: Double,
+        _ unit: String,
+        _ status: StressStatus,
+        _ score: Int,
+        _ badStreak: Int,
+        period: String = "Jun 2026",
+        secondaryValue: Double? = nil
+    ) -> StressIndicator {
+        StressIndicator(
+            key: key,
+            title: title,
+            description: "The latest published figure and its recent direction contribute to the overall stress index.",
+            value: value,
+            secondaryValue: secondaryValue,
+            unit: unit,
+            period: period,
+            badStreak: badStreak,
+            status: status,
+            statusLabel: status.label,
+            score: score,
+            maximumScore: 3,
+            apiURL: nil,
+            websiteURL: nil
+        )
+    }
+}
+
+struct StressDashboardView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            StressDashboardView(
+                client: PropertyResearchAPIClient(),
+                dashboard: .previewFixture
+            )
+        }
+        .previewDisplayName("Revised stress dashboard")
     }
 }

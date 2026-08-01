@@ -4,18 +4,13 @@ struct AboutLegalView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("PROPERTY RESEARCH UK", systemImage: "house.and.flag.fill")
-                        .font(.caption.bold())
-                        .tracking(1)
-                        .foregroundStyle(.blue)
-
-                    Text("About & Legal")
-                        .font(.largeTitle.bold())
-
-                    Text("Privacy, public-data licensing, important disclaimers and support.")
-                        .foregroundStyle(.secondary)
-                }
+                ResearchPageHeader(
+                    eyebrow: "Property Research UK",
+                    title: "About & Legal",
+                    subtitle: "Privacy, public-data licensing, important disclaimers and support.",
+                    icon: "info.circle.fill",
+                    color: .blue
+                )
 
                 VStack(spacing: 12) {
                     legalLink(

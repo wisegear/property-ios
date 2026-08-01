@@ -5,17 +5,13 @@ struct CalculatorsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("PROPERTY TOOLS", systemImage: "function")
-                        .font(.caption.bold())
-                        .tracking(1)
-                        .foregroundStyle(.blue)
-                    Text("Calculators")
-                        .font(.largeTitle.bold())
-                    Text("Plan mortgage payments and estimate property transaction taxes across the UK.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                ResearchPageHeader(
+                    eyebrow: "Property tools",
+                    title: "Calculators",
+                    subtitle: "Plan mortgage payments and estimate property transaction taxes across the UK.",
+                    icon: "function",
+                    color: .purple
+                )
 
                 NavigationLink {
                     MortgageCalculatorView()
@@ -78,17 +74,13 @@ struct MortgageCalculatorView: View {
     }
 
     private var introduction: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Label("MORTGAGE PLANNING", systemImage: "house.fill")
-                .font(.caption.bold())
-                .tracking(1)
-                .foregroundStyle(.blue)
-            Text("Calculate your mortgage")
-                .font(.title.bold())
-            Text("Compare repayment and interest-only payments, lender stress rates and the effect of annual overpayments.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
+        ResearchPageHeader(
+            eyebrow: "Mortgage planning",
+            title: "Calculate your mortgage",
+            subtitle: "Compare repayment and interest-only payments, lender stress rates and the effect of annual overpayments.",
+            icon: "house.fill",
+            color: .blue
+        )
     }
 
     private var inputCard: some View {
@@ -358,17 +350,13 @@ struct StampDutyCalculatorView: View {
     }
 
     private var introduction: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Label("PROPERTY TAX", systemImage: "doc.text.fill")
-                .font(.caption.bold())
-                .tracking(1)
-                .foregroundStyle(.purple)
-            Text("Stamp Duty & Land Taxes")
-                .font(.title.bold())
-            Text("Calculate SDLT, LBTT or LTT including first-time buyer rules and higher rates.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
+        ResearchPageHeader(
+            eyebrow: "Property tax",
+            title: "Stamp Duty & Land Taxes",
+            subtitle: "Calculate SDLT, LBTT or LTT including first-time buyer rules and higher rates.",
+            icon: "doc.text.fill",
+            color: .purple
+        )
     }
 
     private var inputCard: some View {

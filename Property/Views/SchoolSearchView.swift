@@ -30,19 +30,13 @@ struct SchoolSearchView: View {
     }
 
     private var introduction: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("SCHOOLS NEAR YOU", systemImage: "graduationcap.fill")
-                .font(.caption.bold())
-                .tracking(1.1)
-                .foregroundStyle(.indigo)
-
-            Text("Find nearby schools")
-                .font(.title.bold())
-
-            Text("Enter a full postcode to see the nearest primary and secondary schools.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-        }
+        ResearchPageHeader(
+            eyebrow: "Schools near you",
+            title: "Find nearby schools",
+            subtitle: "Enter a full postcode to see the nearest primary and secondary schools.",
+            icon: "graduationcap.fill",
+            color: .indigo
+        )
     }
 
     private var searchPanel: some View {

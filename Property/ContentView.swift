@@ -9,10 +9,12 @@ struct ContentView: View {
     private let quickLinks = [
         QuickLink(title: "Market Dashboard", subtitle: "Property market trends", icon: "chart.xyaxis.line", color: .blue),
         QuickLink(title: "Stress Dashboard", subtitle: "Track market stress", icon: "gauge.with.dots.needle.67percent", color: .red),
-        QuickLink(title: "Calculators", subtitle: "Mortgage & Stamp Duty tools", icon: "function", color: .purple),
+        QuickLink(title: "HPI", subtitle: "Official UK house price index", icon: "house.and.flag.fill", color: .mint),
+        QuickLink(title: "Swap Rates", subtitle: "Track fixed-rate pricing signals", icon: "arrow.left.arrow.right", color: .teal),
         QuickLink(title: "EPC", subtitle: "Search EPC records for the whole country", icon: "leaf.fill", color: .green),
+        QuickLink(title: "Crime", subtitle: "View local crime data", icon: "shield.lefthalf.filled", color: .orange),
         QuickLink(title: "Schools", subtitle: "Explore nearby schools", icon: "graduationcap.fill", color: .indigo),
-        QuickLink(title: "Crime", subtitle: "View local crime data", icon: "shield.lefthalf.filled", color: .orange)
+        QuickLink(title: "Calculators", subtitle: "Mortgage & Stamp Duty tools", icon: "function", color: .purple)
     ]
 
     init(client: any PropertyResearchAPIClientProtocol = PropertyResearchAPIClient()) {
@@ -79,12 +81,12 @@ struct ContentView: View {
                     .foregroundStyle(.white)
 
                     VStack(alignment: .leading, spacing: 9) {
-                        Text("Search sales data in England & Wales")
+                        Text("Property research, all in one place")
                             .font(.system(.largeTitle, design: .rounded, weight: .bold))
                             .foregroundStyle(.white)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Sales history, EPC, schools, crime and local market insights.")
+                        Text("Explore sold prices, EPCs, schools, crime, market trends, stress indicators and calculators.")
                             .font(.subheadline)
                             .foregroundStyle(.white.opacity(0.82))
                             .fixedSize(horizontal: false, vertical: true)
@@ -95,20 +97,26 @@ struct ContentView: View {
                 .padding(.top, 70)
                 .padding(.bottom, 90)
             }
-            .frame(minHeight: 330)
+            .frame(minHeight: 360)
 
             searchCard
                 .padding(.horizontal, 20)
                 .offset(y: 140)
         }
-        .padding(.bottom, 168)
+        .padding(.bottom, 198)
         .accessibilityElement(children: .contain)
     }
 
     private var searchCard: some View {
         VStack(alignment: .leading, spacing: 13) {
-            Text("Find a property")
-                .font(.headline)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Search sales data in England & Wales")
+                    .font(.headline)
+
+                Text("(Not available in Scotland or NI)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
@@ -226,6 +234,20 @@ struct ContentView: View {
                     } else if link.title == "Stress Dashboard" {
                         NavigationLink {
                             StressDashboardView(client: viewModel.client)
+                        } label: {
+                            QuickLinkCard(link: link, showsChevron: true)
+                        }
+                        .buttonStyle(.plain)
+                    } else if link.title == "Swap Rates" {
+                        NavigationLink {
+                            SwapRatesView(client: viewModel.client)
+                        } label: {
+                            QuickLinkCard(link: link, showsChevron: true)
+                        }
+                        .buttonStyle(.plain)
+                    } else if link.title == "HPI" {
+                        NavigationLink {
+                            HPIDashboardView(client: viewModel.client)
                         } label: {
                             QuickLinkCard(link: link, showsChevron: true)
                         }

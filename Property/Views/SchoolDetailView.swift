@@ -47,6 +47,14 @@ struct SchoolDetailView: View {
     private func schoolContent(_ school: SchoolDetail) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
+                ResearchPageHeader(
+                    eyebrow: "School profile",
+                    title: school.name ?? "School information",
+                    subtitle: "School details, Ofsted information and nearby property market context.",
+                    icon: "graduationcap.fill",
+                    color: .indigo,
+                    detail: school.postcode
+                )
                 overview(school)
                 location(school)
                 schoolInformation(school)

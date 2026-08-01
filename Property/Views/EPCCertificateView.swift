@@ -47,6 +47,13 @@ struct EPCCertificateView: View {
     private func certificateContent(_ certificate: EPCCertificateDetail) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
+                ResearchPageHeader(
+                    eyebrow: "Energy performance",
+                    title: displayAddress(certificate.address),
+                    subtitle: "Certificate ratings, estimated energy costs and property efficiency details.",
+                    icon: "leaf.fill",
+                    color: .green
+                )
                 ratingOverview(certificate)
                 certificateDetails(certificate)
                 propertyDetails(certificate.property)

@@ -728,6 +728,51 @@ struct PropertyResearchAPIClientTests {
     }
 
     @Test
+    func stressDashboardDecodesRevisedScoringContract() async throws {
+        let client = makeClient()
+        MockURLProtocol.handler = { request in
+            #expect(request.url?.path == "/api/v1/insights/stress")
+            return (
+                Self.response(for: request, status: 200),
+                Self.data(Self.stressDashboardJSON)
+            )
+        }
+
+        let dashboard = try await client.stressDashboard()
+
+        #expect(dashboard.score.rawMaximum == 24)
+        #expect(dashboard.indicators.count == 8)
+        #expect(dashboard.indicators.allSatisfy { $0.maximumScore == 3 })
+        #expect(dashboard.indicators.map(\.status) == [
+            .positive, .neutral, .warning, .stress,
+            .positive, .neutral, .warning, .stress,
+        ])
+        #expect(dashboard.statusCounts[.positive] == 2)
+        #expect(dashboard.statusCounts[.neutral] == 2)
+        #expect(dashboard.statusCounts[.warning] == 2)
+        #expect(dashboard.statusCounts[.stress] == 2)
+        #expect(dashboard.indicators[2].status.label == "Warning")
+        #expect(dashboard.indicators[3].status.label == "Stress")
+        #expect(dashboard.indicators[1].period == "Effective since 18 Jun 2026")
+    }
+
+    @Test
+    func legacyAndUnknownStressStatusesDecodeAsWarning() throws {
+        let potentialStress = try JSONDecoder().decode(
+            StressStatus.self,
+            from: Self.data(#""potential_stress""#)
+        )
+        let unknown = try JSONDecoder().decode(
+            StressStatus.self,
+            from: Self.data(#""retired_status""#)
+        )
+
+        #expect(potentialStress == .warning)
+        #expect(unknown == .warning)
+        #expect(potentialStress.label == "Warning")
+    }
+
+    @Test
     func successfulPropertyMarketDashboardDecodesAllNationalDatasets() async throws {
         let client = makeClient()
         MockURLProtocol.handler = { request in
@@ -864,4 +909,34 @@ struct PropertyResearchAPIClientTests {
     nonisolated private static func data(_ string: String) -> Data {
         Data(string.utf8)
     }
+
+    nonisolated private static let stressDashboardJSON = """
+    {
+      "data": {
+        "title": "PropertyResearch Stress Indicators Dashboard",
+        "description": "Eight indicators combining housing demand, prices, borrowing costs, household finances and forced-sale pressure.",
+        "last_updated": "2026-06-30",
+        "score": {
+          "value": 50,
+          "maximum": 100,
+          "raw_value": 12,
+          "raw_maximum": 24,
+          "status": "amber",
+          "status_label": "Elevated risk",
+          "description": "A single score combining all eight indicators."
+        },
+        "indicators": [
+          {"key":"mortgage_approvals","title":"Mortgage approvals","description":"Demand","value":65000,"secondary_value":null,"unit":"approvals","period":"Jun 2026","bad_streak":0,"status":"positive","status_label":"Positive","score":0,"maximum_score":3,"api_url":null,"website_url":null},
+          {"key":"interest_rates","title":"Bank rate","description":"Borrowing costs","value":4.25,"secondary_value":null,"unit":"percent","period":"Effective since 18 Jun 2026","bad_streak":0,"status":"neutral","status_label":"Neutral","score":1,"maximum_score":3,"api_url":null,"website_url":null},
+          {"key":"inflation","title":"Inflation","description":"Living costs","value":3.5,"secondary_value":null,"unit":"percent","period":"Jun 2026","bad_streak":2,"status":"warning","status_label":"Warning","score":2,"maximum_score":3,"api_url":null,"website_url":null},
+          {"key":"unemployment","title":"Unemployment","description":"Jobs","value":5.1,"secondary_value":null,"unit":"percent","period":"Jun 2026","bad_streak":3,"status":"stress","status_label":"Stress","score":3,"maximum_score":3,"api_url":null,"website_url":null},
+          {"key":"house_price_index","title":"House prices","description":"Prices","value":292000,"secondary_value":null,"unit":"GBP","period":"Jun 2026","bad_streak":0,"status":"low","status_label":"Positive","score":0,"maximum_score":3,"api_url":null,"website_url":null},
+          {"key":"wage_growth","title":"Wage growth","description":"Pay","value":4.2,"secondary_value":1.1,"unit":"percent","period":"Jun 2026","bad_streak":0,"status":"amber","status_label":"Neutral","score":1,"maximum_score":3,"api_url":null,"website_url":null},
+          {"key":"mortgage_arrears","title":"Mortgage arrears","description":"Arrears","value":1.2,"secondary_value":null,"unit":"percent","period":"Q2 2026","bad_streak":1,"status":"red","status_label":"Warning","score":2,"maximum_score":3,"api_url":null,"website_url":null},
+          {"key":"repossessions","title":"Repossessions","description":"Forced sales","value":0.1,"secondary_value":null,"unit":"percent","period":"Q2 2026","bad_streak":4,"status":"dark_red","status_label":"Stress","score":3,"maximum_score":3,"api_url":null,"website_url":null}
+        ],
+        "website_url": "https://propertyresearch.uk/economic-dashboard"
+      }
+    }
+    """
 }

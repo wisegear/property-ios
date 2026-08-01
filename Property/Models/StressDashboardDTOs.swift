@@ -20,6 +20,12 @@ struct StressDashboard: Decodable, Equatable {
         case indicators
         case websiteURL = "website_url"
     }
+
+    var statusCounts: [StressStatus: Int] {
+        indicators.reduce(into: [:]) { counts, indicator in
+            counts[indicator.status, default: 0] += 1
+        }
+    }
 }
 
 struct StressScore: Decodable, Equatable {
@@ -78,9 +84,35 @@ struct StressIndicator: Decodable, Equatable, Identifiable {
     var id: String { key }
 }
 
-enum StressStatus: String, Decodable, Equatable {
-    case low
-    case amber
-    case red
-    case darkRed = "dark_red"
+enum StressStatus: String, Decodable, Equatable, CaseIterable, Hashable {
+    case positive
+    case neutral
+    case warning
+    case stress
+
+    init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self)
+
+        switch value.lowercased() {
+        case "positive", "supportive", "green", "low":
+            self = .positive
+        case "neutral", "amber":
+            self = .neutral
+        case "stress", "dark_red", "deep":
+            self = .stress
+        case "warning", "potential_stress", "red":
+            self = .warning
+        default:
+            self = .warning
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .positive: "Positive"
+        case .neutral: "Neutral"
+        case .warning: "Warning"
+        case .stress: "Stress"
+        }
+    }
 }

@@ -56,16 +56,13 @@ struct EPCDashboardView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("ENERGY PERFORMANCE", systemImage: "leaf.fill")
-                .font(.caption.bold())
-                .tracking(1.1)
-                .foregroundStyle(.green)
-            Text("EPC dashboard")
-                .font(.title.bold())
-            Text("Explore certificate trends and search for an individual property by postcode.")
-                .foregroundStyle(.secondary)
-        }
+        ResearchPageHeader(
+            eyebrow: "Energy performance",
+            title: "EPC dashboard",
+            subtitle: "Explore certificate trends and search for an individual property by postcode.",
+            icon: "leaf.fill",
+            color: .green
+        )
     }
 
     private var nationPicker: some View {

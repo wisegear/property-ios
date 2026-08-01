@@ -12,6 +12,8 @@ protocol PropertyResearchAPIClientProtocol: Sendable {
     func crimeArea(at url: URL) async throws -> CrimeAreaDetail
     func stressDashboard() async throws -> StressDashboard
     func propertyMarketDashboard() async throws -> PropertyMarketDashboard
+    func swapRates() async throws -> SwapRatesDashboard
+    func hpiDashboard() async throws -> HPIDashboard
 }
 
 final class PropertyResearchAPIClient: PropertyResearchAPIClientProtocol, @unchecked Sendable {
@@ -174,6 +176,22 @@ final class PropertyResearchAPIClient: PropertyResearchAPIClientProtocol, @unche
             url: url,
             as: PropertyMarketDashboardResponse.self
         )
+        return response.data
+    }
+
+    func swapRates() async throws -> SwapRatesDashboard {
+        let url = baseURL
+            .appendingPathComponent("insights")
+            .appendingPathComponent("swap-rates")
+        let response = try await send(url: url, as: SwapRatesDashboardResponse.self)
+        return response.data
+    }
+
+    func hpiDashboard() async throws -> HPIDashboard {
+        let url = baseURL
+            .appendingPathComponent("hpi")
+            .appendingPathComponent("dashboard")
+        let response = try await send(url: url, as: HPIDashboardResponse.self)
         return response.data
     }
 
